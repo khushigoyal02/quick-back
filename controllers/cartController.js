@@ -31,6 +31,22 @@ exports.getCartItems=catchAsyncErrors(async(req,res,next)=>{
   res.json(cartItems);
 })
 
+// Update Cart
+exports.updateQuantity=catchAsyncErrors(async(req, res)=>{
+      const userId = req.params.userId;
+      const productId = req.params.productId;
+      const { quantity } = req.body;
+
+      const user = await User.findById(userId);
+      const cart=user.cart;
+      const productIndex = cart.findIndex((product) => product.productId == productId);
+      if (productIndex !== -1) {
+        cart[productIndex].quantity = quantity;
+      }
+      await user.save();
+      res.json({ message: 'Product quantity updated in cart successfully' });
+})
+
 // Delete From Cart
 exports.deletefromCart=catchAsyncErrors(async(req, res) => {
   const userId = req.params.userId;

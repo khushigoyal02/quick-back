@@ -1,10 +1,18 @@
 const catchAsyncErrors = require("../catchAsyncErrors");
 const User = require("../models/userModel");
+const validator=require('validator');
 const nodemailer = require('nodemailer');
 
 // Register a User
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'All fields must be filled' });
+  }
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ message: 'Email is not valid' });
+  }
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -48,12 +56,13 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 // Login User
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
-
-  if (!user || !(password===user.password)){
-    return res.json({ status: 'error'});
+  if (!email || !password) {
+    return res.status(400).json({ message: 'All fields must be filled' });
   }
-  else {
-    return res.json({ status : 'ok', userId: user._id });
-  } 
+
+  const user = await User.findOne({ email });
+  if (!user || !(password===user.password)){
+    return res.status(400).json({ message: 'Invalid Credentials' });
+  }
+  res.json({ userId: user._id });
 });
